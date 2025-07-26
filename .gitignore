@@ -1,0 +1,43 @@
+# .gitignore for bank-lending-system (Monorepo)
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log* # If using lerna or similar monorepo tools
+
+# Dependencies (explicitly ignore node_modules in backend and frontend)
+/backend/node_modules/
+/frontend/node_modules/
+# If you ever have a root node_modules for shared tools:
+#/node_modules/ 
+
+# Build outputs (explicitly ignore build folders in backend and frontend)
+/backend/build/ # If your backend has a 'build' step/folder
+/frontend/build/ # This is React's production build output
+
+# Project specific files (e.g., if any of these are created in the root)
+/.pnp
+.pnp.js
+/coverage
+
+# Environment variables (ALWAYS ignore these - sensitive data)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE and OS specific files
+.DS_Store
+.idea/ # IntelliJ IDEA / WebStorm project files
+.vscode/ # VS Code specific settings (optional, can be committed if shared)
+*.tgz
+*.local
+*.swp
+.cache/
+.npm/
+.eslintcache
+.prettiercache
