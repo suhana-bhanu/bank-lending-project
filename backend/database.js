@@ -1,40 +1,35 @@
-// backend/database.js
-const sqlite3 = require('sqlite3').verbose();
-const path = require('path');
+// backend/database.js - MODIFIED FOR POSTGRESQL
+require('dotenv').config(); // Load environment variables from .env file
 
-// Connect to a new database file or open an existing one
-const dbPath = path.resolve(__dirname, 'bank_lending.db');
-const db = new sqlite3.Database(dbPath, (err) => {
-    if (err) {
-        console.error('Error opening database:', err.message);
-    } else {
-        console.log('Connected to the SQLite database.');
-        db.run(`CREATE TABLE IF NOT EXISTS Customers (
-            customer_id TEXT PRIMARY KEY,
-            name TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )`);
-        db.run(`CREATE TABLE IF NOT EXISTS Loans (
-            loan_id TEXT PRIMARY KEY,
-            customer_id TEXT NOT NULL,
-            principal_amount REAL NOT NULL,
-            total_amount REAL NOT NULL,
-            interest_rate REAL NOT NULL,
-            loan_period_years INTEGER NOT NULL,
-            monthly_emi REAL NOT NULL,
-            status TEXT DEFAULT 'ACTIVE',
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
-        )`);
-        db.run(`CREATE TABLE IF NOT EXISTS Payments (
-            payment_id TEXT PRIMARY KEY,
-            loan_id TEXT NOT NULL,
-            amount REAL NOT NULL,
-            payment_type TEXT NOT NULL, -- 'EMI' or 'LUMP_SUM'
-            payment_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            FOREIGN KEY (loan_id) REFERENCES Loans(loan_id)
-        )`);
+// Import the Pool class from the 'pg' library
+const { Pool } = require('pg');
+
+// Create a new Pool instance. It will manage connections to your PostgreSQL database.
+const pool = new Pool({
+    connectionString: process.env.DATABASE_URL, // Get database URL from environment variables
+    ssl: {
+        // This is crucial for connecting to cloud PostgreSQL services like Supabase
+        // as they use SSL. `rejectUnauthorized: false` is often needed for development
+        // or if the certificate is self-signed/untrusted by default Node.js.
+        // For production, you might configure specific CA certs.
+        rejectUnauthorized: false
     }
 });
 
-module.exports = db;
+// Event listener for when a client connects to the database
+pool.on('connect', () => {
+    console.log('Connected to PostgreSQL database.');
+});
+
+// Event listener for errors on idle clients in the pool
+pool.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
+    process.exit(-1); // Exit the process if a critical database error occurs
+});
+
+// Export a 'query' function that allows you to execute SQL queries using the pool.
+// This abstracts away direct pool.query calls in your routes.
+// We no longer run schema creation here; you'll run SQL queries directly in Supabase.
+module.exports = {
+    query: (text, params) => pool.query(text, params),
+};
