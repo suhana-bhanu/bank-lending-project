@@ -13,7 +13,8 @@ const pool = new Pool({
         // or if the certificate is self-signed/untrusted by default Node.js.
         // For production, you might configure specific CA certs.
         rejectUnauthorized: false
-    }
+    },
+    family: 4
 });
 
 // Event listener for when a client connects to the database
